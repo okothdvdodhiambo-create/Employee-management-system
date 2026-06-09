@@ -19,7 +19,7 @@ if(isset($_POST['login'])){
 
         $_SESSION['username'] = $row['username'];
 
-        header("Location: dashboard.php");
+        header("Location: home.php");
         exit();
 
     }else{
