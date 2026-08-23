@@ -262,6 +262,117 @@ $attendance_result = mysqli_query($conn, $attendance_sql);
             color: var(--accent-purple);
             transform: translateX(-3px);
         }
+        :root {
+    --primary: #0076fe;
+    --secondary: #8b5cf6;
+    --dark: #0f172a;
+    --text-muted: #64748b;
+    --glass-footer-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.4);
+}
+
+.system-footer {
+    width: 100%;
+    max-width: 1100px;
+    margin: 40px auto 0 auto;
+    background: var(--glass-footer-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 35px 30px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.footer-logo img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border-radius: 16px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.footer-content {
+    flex: 1;
+}
+
+.footer-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 6px;
+}
+
+.footer-desc {
+    color: #475569;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+    max-width: 750px;
+}
+
+.social-links {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.social-links a {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: var(--dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.25s ease;
+}
+
+.social-links a:hover {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 118, 254, 0.25);
+}
+
+.copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-top: 1px solid #e2e8f0;
+    padding-top: 14px;
+}
+
+.copyright strong {
+    color: var(--dark);
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 768px) {
+    .system-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+
+    .footer-desc {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
     </style>
 </head>
 <body>
@@ -355,6 +466,50 @@ $attendance_result = mysqli_query($conn, $attendance_sql);
     </a>
 
 </div>
+<footer class="system-footer">
+
+    <div class="footer-logo">
+        <img src="image.png" alt="EMS Logo">
+    </div>
+
+    <div class="footer-content">
+
+        <h3>Employee Management System</h3>
+
+        <p class="footer-desc">
+            Streamlining employee management, attendance tracking,
+            leave management, reporting, and organizational productivity.
+        </p>
+
+        <div class="social-links">
+
+            <a href="https://facebook.com" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+
+            <a href="https://instagram.com" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+
+            <a href="https://x.com" target="_blank" aria-label="X (Twitter)">
+                <i class="fab fa-x-twitter"></i>
+            </a>
+
+            <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+
+        </div>
+
+        <p class="copyright">
+            © <?php echo date('Y'); ?> Employee Management System &bull; 
+            Developed by <strong>David Okoth</strong> &bull; 
+            All Rights Reserved.
+        </p>
+
+    </div>
+
+</footer>
 
 </body>
 </html>

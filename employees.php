@@ -3,7 +3,7 @@ session_start();
 include("connect.php");
 
 $message = "";
-$message_type = ""; // To switch colors between success and error banners
+$message_type = "";
 
 if(isset($_POST['register'])){
 
@@ -14,21 +14,74 @@ if(isset($_POST['register'])){
     $phone = $_POST['phone'];
     $salary = $_POST['salary'];
 
-    // Secure Prepared Statement to prevent SQL Injection
-    $stmt = $conn->prepare("INSERT INTO details (fullname, email, department, position, phone, salary) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssd", $fullname, $email, $department, $position, $phone, $salary);
-    
+    $photo = "";
+
+    if(isset($_FILES['photo']) &&
+       $_FILES['photo']['error'] == 0){
+
+        $photo =
+        time()."_".
+        basename($_FILES['photo']['name']);
+
+        move_uploaded_file(
+            $_FILES['photo']['tmp_name'],
+            "uploads/".$photo
+        );
+    }
+
+    $stmt = $conn->prepare(
+    "INSERT INTO details
+    (fullname,email,department,position,phone,salary,photo)
+    VALUES
+    (?,?,?,?,?,?,?)"
+    );
+
+    $stmt->bind_param(
+    "sssssds",
+    $fullname,
+    $email,
+    $department,
+    $position,
+    $phone,
+    $salary,
+    $photo
+    );
+
     if($stmt->execute()){
-        $message = "Employee Registered Successfully!";
+
+        $id = mysqli_insert_id($conn);
+
+        $employee_code =
+        "EMP".str_pad(
+        $id,
+        3,
+        "0",
+        STR_PAD_LEFT
+        );
+
+        mysqli_query(
+        $conn,
+        "UPDATE details
+        SET employee_code='$employee_code'
+        WHERE id='$id'"
+        );
+
+        $message =
+        "Employee Registered Successfully!";
+
         $message_type = "success";
+
     }else{
-        $message = "Error: " . $stmt->error;
+
+        $message =
+        "Error: ".$stmt->error;
+
         $message_type = "error";
     }
+
     $stmt->close();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -250,14 +303,150 @@ if(isset($_POST['register'])){
             text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;
         }
         .back-link:hover { color: var(--accent-purple); transform: translateX(-2px); }
+        :root {
+    --primary: #0076fe;
+    --secondary: #8b5cf6;
+    --dark-bg: #090d16;          /* Deep rich black */
+    --text-main: #f8fafc;        /* High-contrast white/light text */
+    --text-muted: #94a3b8;       /* Subtle muted text */
+    --dark-border: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Ensure page stretches full height so footer sits at bottom --- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Container wrapper push footer down --- */
+.container {
+    flex: 1 0 auto; /* Pushes footer to bottom when page content is short */
+}
+
+/* --- FULL-WIDTH BLACK FOOTER --- */
+.system-footer {
+    width: 100vw;                /* Cover screen left to right */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: auto;            /* Sticks to the bottom */
+    
+    background: var(--dark-bg);
+    border-top: 1px solid var(--dark-border);
+    padding: 35px 40px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+}
+
+.footer-logo img {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+    border-radius: 16px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dark-border);
+}
+
+.footer-content {
+    max-width: 1000px;
+    width: 100%;
+}
+
+.footer-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+
+.footer-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+    max-width: 750px;
+}
+
+/* --- SOCIAL LINKS (DARK THEME) --- */
+.social-links {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.social-links a {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid var(--dark-border);
+    transition: all 0.25s ease;
+}
+
+.social-links a:hover {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 118, 254, 0.35);
+}
+
+/* --- COPYRIGHT BAR --- */
+.copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--dark-border);
+    padding-top: 14px;
+}
+
+.copyright strong {
+    color: var(--text-main);
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 768px) {
+    .system-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+
+    .footer-desc {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2><i class="fa-solid fa-user-plus"></i> Employee Registration Form</h2>
-
-   <h2><i class="fa-solid fa-user-plus"></i> Employee Registration Form</h2>
 
     <div class="toast-container" id="toastContainer">
         <?php if(!empty($message)): ?>
@@ -268,7 +457,7 @@ if(isset($_POST['register'])){
         <?php endif; ?>
     </div>
 
-    <form method="POST" autocomplete="off">
+    <form method="POST" enctype="multipart/form-data" autocomplete="off">
         <label>Full Name</label>
         <div class="input-field-wrapper">
             <input type="text" name="fullname" placeholder="John Doe" required>
@@ -304,6 +493,16 @@ if(isset($_POST['register'])){
             <input type="number" step="0.01" name="salary" placeholder="5500.00">
             <i class="fa-solid fa-money-bill-wave"></i>
         </div>
+        <<label>Employee Photo</label>
+
+<div class="input-field-wrapper">
+    <input
+    type="file"
+    name="photo"
+    accept="image/*">
+
+    <i class="fa-solid fa-image"></i>
+</div>
 
         <button type="submit" name="register">Register Employee</button>
     </form>
@@ -328,7 +527,8 @@ if(isset($_POST['register'])){
         <table class="modern-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Emp ID</th>
+                    <th>Photo</th>
                     <th>Full Name</th>
                     <th>Email</th>
                     <th>Department</th>
@@ -345,7 +545,35 @@ if(isset($_POST['register'])){
                 if(mysqli_num_rows($result) > 0) {
                     while($row = mysqli_fetch_assoc($result)){ ?>
                         <tr>
-                            <td><strong>#<?php echo $row['id']; ?></strong></td>
+                            <td>
+<strong>
+<?php echo $row['employee_code']; ?>
+</strong>
+</td>
+
+<td>
+
+<?php
+if(!empty($row['photo'])){
+?>
+
+<img
+src="uploads/<?php echo $row['photo']; ?>"
+width="55"
+height="55"
+style="
+border-radius:50%;
+object-fit:cover;
+border:2px solid #0076fe;
+">
+
+<?php
+}else{
+    echo "No Photo";
+}
+?>
+
+</td>
                             <td><?php echo htmlspecialchars($row['fullname']); ?></td>
                             <td><?php echo htmlspecialchars($row['email']); ?></td>
                             <td><?php echo htmlspecialchars($row['department']); ?></td>
@@ -366,7 +594,7 @@ if(isset($_POST['register'])){
                     <?php }
                 } else { ?>
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 20px; color: #6b7280;">No records found.</td>
+                        <td colspan="10" style="text-align: center; padding: 20px; color: #6b7280;">No records found.</td>
                     </tr>
                 <?php } ?>
             </tbody>
@@ -392,6 +620,50 @@ document.getElementById('tableSearch').addEventListener('input', function() {
     xhr.send('query=' + encodeURIComponent(searchQuery));
 });
 </script>
+<footer class="system-footer">
+
+    <div class="footer-logo">
+        <img src="image.png" alt="EMS Logo">
+    </div>
+
+    <div class="footer-content">
+
+        <h3>Employee Management System</h3>
+
+        <p class="footer-desc">
+            Streamlining employee management, attendance tracking,
+            leave management, reporting, and organizational productivity.
+        </p>
+
+        <div class="social-links">
+
+            <a href="https://facebook.com" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+
+            <a href="https://instagram.com" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+
+            <a href="https://x.com" target="_blank" aria-label="X (Twitter)">
+                <i class="fab fa-x-twitter"></i>
+            </a>
+
+            <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+
+        </div>
+
+        <p class="copyright">
+            © <?php echo date('Y'); ?> Employee Management System &bull; 
+            Developed by <strong>David Okoth</strong> &bull; 
+            All Rights Reserved.
+        </p>
+
+    </div>
+
+</footer>
 
 </body>
 </html>

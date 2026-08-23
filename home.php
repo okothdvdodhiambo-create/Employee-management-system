@@ -200,6 +200,144 @@ $user_role = isset($_SESSION['role']) ? $_SESSION['role'] : 'employee';
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.04); }
         }
+        :root {
+    --primary: #0076fe;
+    --secondary: #8b5cf6;
+    --dark-bg: #090d16;          /* Deep rich black */
+    --text-main: #f8fafc;        /* High-contrast white/light text */
+    --text-muted: #94a3b8;       /* Subtle muted text */
+    --dark-border: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Ensure page stretches full height so footer sits at bottom --- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Container wrapper push footer down --- */
+.container {
+    flex: 1 0 auto; /* Pushes footer to bottom when page content is short */
+}
+
+/* --- FULL-WIDTH BLACK FOOTER --- */
+.system-footer {
+    width: 100vw;                /* Cover screen left to right */
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: auto;            /* Sticks to the bottom */
+    
+    background: var(--dark-bg);
+    border-top: 1px solid var(--dark-border);
+    padding: 35px 40px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+}
+
+.footer-logo img {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+    border-radius: 16px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--dark-border);
+}
+
+.footer-content {
+    max-width: 1000px;
+    width: 100%;
+}
+
+.footer-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+
+.footer-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+    max-width: 750px;
+}
+
+/* --- SOCIAL LINKS (DARK THEME) --- */
+.social-links {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.social-links a {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 0.95rem;
+    border: 1px solid var(--dark-border);
+    transition: all 0.25s ease;
+}
+
+.social-links a:hover {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #ffffff;
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 118, 254, 0.35);
+}
+
+/* --- COPYRIGHT BAR --- */
+.copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--dark-border);
+    padding-top: 14px;
+}
+
+.copyright strong {
+    color: var(--text-main);
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 768px) {
+    .system-footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+    }
+
+    .social-links {
+        justify-content: center;
+    }
+
+    .footer-desc {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
     </style>
 </head>
 <body>
@@ -215,6 +353,15 @@ $user_role = isset($_SESSION['role']) ? $_SESSION['role'] : 'employee';
         <a href="attendance.php"><i class="fa-solid fa-fingerprint"></i> Attendance</a>
         <a href="#" onclick="checkAdminAccess(event, 'reports.php')"><i class="fa-solid fa-chart-line"></i> Reports</a>
         <a href="logout.php"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        <a href="leave_request.php" class="feature-card">
+    <i class="fa-solid fa-calendar-plus"></i>
+    <span>Request Leave</span>
+</a>
+
+<a href="my_leave.php" class="feature-card">
+    <i class="fa-solid fa-list-check"></i>
+    <span>My Leave Status</span>
+</a>
     </div>
 
     <div class="content">
@@ -290,6 +437,53 @@ $user_role = isset($_SESSION['role']) ? $_SESSION['role'] : 'employee';
         alert("Initializing Biometric Scan...\nScanning fingerprint sensor... Success! Attendance recorded securely for today.");
     }
 </script>
+<a href="leave_request.php">
+    Leave Request
+</a>
+<footer class="system-footer">
+
+    <div class="footer-logo">
+        <img src="image.png" alt="EMS Logo">
+    </div>
+
+    <div class="footer-content">
+
+        <h3>Employee Management System</h3>
+
+        <p class="footer-desc">
+            Streamlining employee management, attendance tracking,
+            leave management, reporting, and organizational productivity.
+        </p>
+
+        <div class="social-links">
+
+            <a href="https://facebook.com" target="_blank" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+
+            <a href="https://instagram.com" target="_blank" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+
+            <a href="https://x.com" target="_blank" aria-label="X (Twitter)">
+                <i class="fab fa-x-twitter"></i>
+            </a>
+
+            <a href="https://linkedin.com" target="_blank" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+
+        </div>
+
+        <p class="copyright">
+            © <?php echo date('Y'); ?> Employee Management System &bull; 
+            Developed by <strong>David Okoth</strong> &bull; 
+            All Rights Reserved.
+        </p>
+
+    </div>
+
+</footer>
 
 </body>
 </html>

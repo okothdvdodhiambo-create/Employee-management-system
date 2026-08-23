@@ -1,35 +1,74 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include("connect.php");
 
 $error_message = ""; // Variable to hold login error safely
+
+// =========================================================
+// CHANGED: STEP 2 - CHECK FOR PRE-EXISTING REMEMBER ME COOKIE
+// =========================================================
+$saved_email = "";
+if (isset($_COOKIE['remember_email'])) {
+    $saved_email = htmlspecialchars($_COOKIE['remember_email']);
+}
 
 if(isset($_POST['login'])){
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
     // 1. SECURE STEP: Select user record by email ONLY using a Prepared Statement
-    $stmt = $conn->prepare("SELECT username, password, role FROM employees WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, username, password, role FROM employees WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if($result->num_rows > 0){
         $row = $result->fetch_assoc();
-
+    
         // 2. SECURE STEP: Verify the raw form input against the unreadable BCRYPT database hash string
         if(password_verify($password, $row['password'])){
             
             // Password matches! Initialize system session tracking variables
+            $_SESSION['user_id'] = $row['id'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role'];
+            $_SESSION['email'] = $email;
+
+            // =========================================================
+            // CHANGED: STEP 1 - MANAGE REMEMBER ME COOKIE STATE ON SUCCESS
+            // =========================================================
+            if (isset($_POST['remember_me'])) {
+                // Set secure cookie named 'remember_email' for 30 days (86400 seconds * 30 days)
+                // The final 'true' parameter turns on HttpOnly to shield against XSS attacks!
+                setcookie("remember_email", $email, time() + (86400 * 30), "/", "", false, true); 
+            } else {
+                // If the user logging in unchecked the box, clear out any old cookie
+                if (isset($_COOKIE['remember_email'])) {
+                    setcookie("remember_email", "", time() - 3600, "/", "", false, true);
+                }
+            }
 
             // Divert routing profiles based on the administrative structural tier
             if($row['role'] == 'super_admin'){
+
                 header("Location: super_admin_dashboard.php");
-            } else {
+
+            }elseif($row['role'] == 'admin'){
+
                 header("Location: home.php");
+
+            }elseif($row['role'] == 'employee'){
+
+                header("Location: employee_portal.php");
+
+            }else{
+
+                header("Location: home.php");
+
             }
+
             exit();
         } else {
             // Keeps errors vague to prevent bad actors from guessing valid emails
@@ -41,7 +80,8 @@ if(isset($_POST['login'])){
     $stmt->close();
 }
 ?>
-
+<!DOCTYPE html>
+<html lang="en">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,6 +96,7 @@ if(isset($_POST['login'])){
             --primary-hover: #005ecb;
             --text-dark: #333333;
             --error-red: #ef4444;
+            --success-green: #10b981;
         }
 
         * {
@@ -109,22 +150,6 @@ if(isset($_POST['login'])){
             color: #111827;
             font-weight: 700;
             margin-bottom: 25px;
-        }
-
-        /* --- ERROR BANNER --- */
-        .error-banner {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: var(--error-red);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
 
         /* --- INTERACTIVE INPUT GROUPS --- */
@@ -210,6 +235,44 @@ if(isset($_POST['login'])){
             color: var(--primary-hover);
             text-decoration: underline;
         }
+
+        /* ========================================================= */
+        /* CHANGED: ADDED MODERN SLIDING TOAST BANNER CORE STYLES    */
+        /* ========================================================= */
+        .toast-container {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-notification {
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            min-width: 320px;
+            transform: translateX(120%);
+            animation: slideIn 0.4s forwards, fadeOut 0.5s ease 3.5s forwards;
+            border-left: 5px solid var(--error-red);
+            color: var(--error-red);
+            text-align: left;
+        }
+
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(-20px); pointer-events: none; }
+        }
         
     </style>
 </head>
@@ -233,12 +296,20 @@ if(isset($_POST['login'])){
 
     <form method="POST" autocomplete="off">
         <div class="input-group">
-            <input type="email" name="email" placeholder="Email Address" required>
+            <input type="email" name="email" placeholder="Email Address" value="<?php echo $saved_email; ?>" required>
         </div>
 
         <div class="input-group">
             <input type="password" id="passwordField" name="password" placeholder="Password" required>
             <i class="fa-regular fa-eye password-toggle" id="toggleIcon" onclick="togglePasswordVisibility()"></i>
+        </div>
+
+        <div class="remember-me-wrapper" style="display: flex; align-items: center; gap: 8px; margin: -5px 0 20px 2px; user-select: none; text-align: left;">
+            <input type="checkbox" name="remember_me" id="rememberMe" <?php echo !empty($saved_email) ? 'checked' : ''; ?> 
+                   style="width: 16px; height: 16px; accent-color: var(--primary-blue); cursor: pointer;">
+            <label for="rememberMe" style="margin: 0; color: #4b5563; font-size: 0.9rem; cursor: pointer; font-weight: 500;">
+                Remember my email on this device
+            </label>
         </div>
 
         <button type="submit" name="login">Login Securely</button>
@@ -249,7 +320,31 @@ if(isset($_POST['login'])){
     </p>
 </div>
 
+<script>
+    // Existing password eye visibility toggle logic
+    function togglePasswordVisibility() {
+        const passwordField = document.getElementById('passwordField');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
 
+    // Automatically remove toast alert markup from layout branch after cycle timeout expires
+    const runningToast = document.querySelector('.toast-notification');
+    if(runningToast) {
+        setTimeout(() => {
+            runningToast.remove();
+        }, 4100); 
+    }
+</script>
 
 </body>
 </html>
